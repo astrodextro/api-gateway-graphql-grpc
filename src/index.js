@@ -1,7 +1,10 @@
 const express = require('express')
 const { graphqlHTTP } = require('express-graphql')
+const expressPlayground = require('graphql-playground-middleware-express')
+  .default
 const { buildSchema } = require('graphql')
 const usersServiceClient = require("./users-service-client");
+const defaultPlaygroundQueries = require("./playground-query")
 
 // Create a server:
 const app = express();
@@ -47,11 +50,26 @@ var root = {
 };
 
 // Use those to handle incoming requests:
-app.use('/graphql', graphqlHTTP({
+app.use('/graphql', graphqlHTTP((req) => ({
     schema: schema,
     rootValue: root,
-    graphiql: true,
-  }));
+    // graphiql: true,
+  })));
+
+  app.get('/playground', expressPlayground({
+    endpoint: '/graphql',
+    subscriptionEndpoint: '/',
+    settings: {
+      'request.credentials': 'include'
+    },
+    tabs: [
+      {
+        name: 'API',
+        endpoint: '/',
+        // query: defaultPlaygroundQueries
+      }
+    ]
+  }))
 
 // Start the server:
 app.listen(7000, () => console.log("Server started on port 7000"));
